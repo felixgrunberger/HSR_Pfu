@@ -1,0 +1,100 @@
+```{r, message = F, warnings = F, comments = F, eval = T, echo = F}
+# libraries ----
+library(reactable)
+library(htmltools)
+library(tidyverse)
+library(readxl)
+
+# data ----
+tab <- read_xlsx("../../data/counts_tables.xlsx")
+
+# table ----
+with_tooltip <- function(value, tooltip) {
+  tags$abbr(style = "text-decoration: none; text-decoration-style: none; cursor: help",
+            title = tooltip, value)
+}
+orange_pal <- function(x) rgb(colorRamp(c("#ffe4cc", "#ff9500"))(x), maxColorValue = 255)
+
+# color scales ----
+BuYlRd <- function(x) rgb(colorRamp(c("#7fb7d7", "#ffffbf", "#fc8d59"))(x), maxColorValue = 255)
+yesno  <- function(x){
+  if(x <= 0.05){
+    return("grey")
+  }else{
+    return("white")
+  }
+}
+
+
+# reactable ----
+tbl <- reactable(data = tab,
+          width = "auto",
+          searchable = TRUE,
+          filterable = TRUE,
+          highlight = TRUE,
+          columns = list(
+            #counter = colDef(style = function(value) {
+            #    normalized <- (value - min(tab$counter)) / (max(tab$counter) - min(tab$counter))
+            #    color <- orange_pal(normalized)
+            #    list(background = color)
+            #  },
+            #  defaultSortOrder = "desc"
+            #  ),
+            id = colDef(
+              header = with_tooltip("Gene ID", "Gene ID - Links to Uniprot DB"),
+              html = TRUE,
+              cell = JS("function(cell) {
+              return '<a href=\"https://www.uniprot.org/uniprot/?query=pyrococcus+furiosus+' + cell.value + '\">' + cell.value + '</a>'
+              }")
+              ),
+            paperblast = colDef(
+              header = with_tooltip("PaperBLAST", "Find paper about a protein or its homologs"),
+              html = T,
+              cell = JS("function(cell) {
+              return '<a href=\"https://papers.genomics.lbl.gov/cgi-bin/litSearch.cgi?query=+' + cell.value + '\">' + 
+'PaperBLAST' + '</a>'
+              }")
+              ),
+            old_id = colDef(
+              header = "PF numbers"
+            ),
+            HS1_FC_RNA = colDef(
+              style = function(value) {
+                normalized <- (value - min(tab$HS1_FC_RNA, na.rm = T)) / (max(tab$HS1_FC_RNA, na.rm = T) - min(tab$HS1_FC_RNA, na.rm = T))
+                color <- BuYlRd(normalized)
+                list(background = color)
+              }
+            ),
+            HS2_FC_RNA = colDef(
+              style = function(value) {
+                normalized <- (value - min(tab$HS2_FC_RNA, na.rm = T)) / (max(tab$HS2_FC_RNA, na.rm = T) - min(tab$HS2_FC_RNA, na.rm = T))
+                color <- BuYlRd(normalized)
+                list(background = color)
+              }
+              ),
+            HS3_FC_RNA = colDef(
+              style = function(value) {
+                normalized <- (value - min(tab$HS3_FC_RNA, na.rm = T)) / (max(tab$HS3_FC_RNA, na.rm = T) - min(tab$HS3_FC_RNA, na.rm = T))
+                color <- BuYlRd(normalized)
+                list(background = color)
+              }
+            ),
+            HS1_padj_RNA = colDef(
+              style = function(value){
+                list(background = yesno(value))
+              }
+            )
+            ),
+           compact = TRUE
+)
+
+htmltools::div(class = "twitter-followers",
+  htmltools::div(class = "followers-header",
+    htmltools::h2(class = "followers-title", "Interactive count tables"),
+    "Interactive count tables containing gene information and FC, count info of transcriptomics & proteomics analysis of HSR in Pyrococcus furiosus"
+  ),
+  htmltools::br(),
+  tbl
+)
+         
+```
