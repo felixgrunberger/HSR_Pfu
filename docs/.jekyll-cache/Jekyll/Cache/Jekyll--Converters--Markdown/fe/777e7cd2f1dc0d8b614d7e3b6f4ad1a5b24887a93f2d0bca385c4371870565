@@ -1,0 +1,16 @@
+I"Å<h1 class="fs-9" id="an-interactive-doc-looking-into-the-heat-shock-response-in-pyrococcus-furiosus">An interactive doc looking into the heat shock response in <i>Pyrococcus furiosus</i>.</h1>
+
+<hr />
+<p class="fs-6 fw-300">This documentation page was created in parallel to the github repository to have a more descriptive and interactive way of visualizing count tables.</p>
+
+<p><a href="docs/tables" class="btn btn-primary fs-5 mb-4 mb-md-0 mr-2">View interactive count tables</a> 
+<a href="https://github.com/felixgrunberger/HSR_Pfu" class="btn fs-5 mb-4 mb-md-0">View the code on GitHub</a></p>
+
+<hr />
+<p><br /></p>
+
+<p>The repository is currently actively developed.</p>
+
+<p><a href="https://gist.github.com/cheerfulstoic/d107229326a01ff0f333a1d3476e068d"><img src="https://img.shields.io/badge/Maintenance%20Level-Actively%20Developed-brightgreen.svg" alt="Active Development" /></a></p>
+
+:ET

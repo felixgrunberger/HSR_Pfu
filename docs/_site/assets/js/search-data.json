@@ -1,0 +1,20 @@
+{"0": {
+    "doc": "Home",
+    "title": "An interactive doc looking into the heat shock response in Pyrococcus furiosus.",
+    "content": ". This documentation page was created in parallel to the github repository to have a more descriptive and interactive way of visualizing count tables. View interactive count tables View the code on GitHub . The repository is currently actively developed. ",
+    "url": "http://localhost:4000/HSR_Pfu/#an-interactive-doc-looking-into-the-heat-shock-response-in-pyrococcus-furiosus",
+    "relUrl": "/#an-interactive-doc-looking-into-the-heat-shock-response-in-pyrococcus-furiosus"
+  },"1": {
+    "doc": "Home",
+    "title": "Home",
+    "content": " ",
+    "url": "http://localhost:4000/HSR_Pfu/",
+    "relUrl": "/"
+  },"2": {
+    "doc": "Interactive tables",
+    "title": "Interactive tables",
+    "content": " ",
+    "url": "http://localhost:4000/HSR_Pfu/docs/tables/",
+    "relUrl": "/docs/tables/"
+  }
+}
