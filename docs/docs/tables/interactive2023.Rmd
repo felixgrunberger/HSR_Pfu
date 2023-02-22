@@ -87,7 +87,7 @@ tbl <- reactable(
     locus_tag = colDef(
       name = "Locus tag",
       defaultSortOrder = "asc",
-      minWidth = 220,
+      minWidth = 200,
       headerStyle = list(fontWeight = 200)
     ),
     old_locus_tag = colDef(
@@ -95,7 +95,7 @@ tbl <- reactable(
       name = "Old locus tag",
       html = TRUE,
       defaultSortOrder = "asc",
-      minWidth = 220,
+      minWidth = 180,
       headerStyle = list(fontWeight = 200),
       cell = JS("function(cell) {
               return '<a href=\"https://www.uniprot.org/uniprot/?query=pyrococcus+furiosus+' + cell.value + '\">' + cell.value + '</a>'
@@ -110,7 +110,7 @@ tbl <- reactable(
       headerStyle = list(fontWeight = 700),
       cell = JS("function(cell) {
               return '<a href=\"https://papers.genomics.lbl.gov/cgi-bin/litSearch.cgi?query=+' + cell.value + '\">' + 
-'PaperBLAST' + '</a>'
+cell.value + '</a>'
               }")
     ),
     description = colDef(
@@ -350,7 +350,7 @@ MS_log2FC_HS3_rec = ms_cols_column(
 
 div(class = "standings",
     div(class = "title",
-        h2("Cold and Heat shock <i>Pyrococcus furiosus</i>"),
+        h2("Cold and Heat shock in Pyrococcus furiosus"),
         "Integrative RNA-seq and proteomics analysis"
     ),
     tbl
