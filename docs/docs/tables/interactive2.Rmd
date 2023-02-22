@@ -1,0 +1,87 @@
+---
+title: ""
+output: html_document
+---
+
+
+```{r, message = F, warnings = F, comments = F, eval = T, echo = F}
+# libraries ----
+library(reactablefmtr)
+library(htmltools)
+library(tidyverse)
+library(readxl)
+
+# data ----
+tab <- read_xlsx("/Users/felix/Documents/R/GITHUB/HSR_Pfu/docs/data/counts_tables.xlsx")
+tab <- read_xlsx("../../data/counts_tables.xlsx")
+
+# table ----
+with_tooltip <- function(value, tooltip) {
+  tags$abbr(style = "text-decoration: none; text-decoration-style: none; cursor: help",
+            title = tooltip, value)
+}
+orange_pal <- function(x) rgb(colorRamp(c("#ffe4cc", "#ff9500"))(x), maxColorValue = 255)
+
+# color scales ----
+BuYlRd <- function(x) rgb(colorRamp(c("#7fb7d7", "#ffffbf", "#fc8d59"))(x), maxColorValue = 255)
+
+colorsetter  <- function(c1,c2){
+  if(c1 > 0 & c2 <= 0.05){
+    return("#F9954C")
+  }else if(c1 > 0 & c2 <= 0.05){
+    return("#00B0B4")
+  }else{
+    return("#B9B9B9")
+  }
+}
+
+data <- data.frame(
+  Group = c("Red Group 1","Red Group 2","Red Group 3","Red Group 4","Red Group 5",
+            "Blue Group 1","Blue Group 2","Blue Group 3","Blue Group 4","Blue Group 5",
+            "Green Group 1","Green Group 2","Green Group 3","Green Group 4","Green Group 5"),
+  Pct1 = c(.27, .82, .44, .68, .78, 
+           .74, .66, .33, .23, .20, 
+           .50, .55, .40, .70, .60),
+  Pct2 = c(.33, .17, .87, .54, .37,
+           .84, .72, .61, .48, .77,
+           .21, .39, .60, .55, .81)
+)
+reactable(
+  data,
+  pagination = FALSE,
+  defaultColDef = colDef(
+    cell = data_bars(data, 
+                     number_fmt = scales::percent)
+  )
+)
+tab1 <- tab %>%
+  dplyr::mutate(col_HS1_RNA = ifelse(HS1_padj_RNA <= 0.05, "red", "green"))
+tab2 <- tab1[1:10,c(1:10, 30)]
+reactable(data = tab2,
+          pagination = FALSE,
+          width = "auto",
+          searchable = TRUE,
+          filterable = TRUE,
+          highlight = TRUE,
+          columns = list(
+            HS1_FC_RNA = colDef(
+              cell = data_bars(tab2, 
+                               text_position = "above", 
+                               text_color_ref = "col_HS1_RNA",
+                               fill_opacity = 1, 
+                               fill_color_ref = "col_HS1_RNA",
+                                )
+            )
+          )
+)
+
+            #counter = colDef(style = function(value) {
+            #    normalized <- (value - min(tab$counter)) / (max(tab$counter) - min(tab$counter))
+            #    color <- orange_pal(normalized)
+            #    list(background = color)
+            #  },
+            #  defaultSortOrder = "desc"
+            #  ),
+  
+         
+```
