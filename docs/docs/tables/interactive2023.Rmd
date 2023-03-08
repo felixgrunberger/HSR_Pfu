@@ -15,16 +15,17 @@ library(tidyverse)
 library(readxl)
 library(reactable)
 library(htmltools)
+library(RColorBrewer)
 
 # functions ----
 
 
 # example -----
-
 htmltools::tags$link(
   href = "https://fonts.googleapis.com/css?family=Karla:400,700|Fira+Mono&display=fallback",
   rel = "stylesheet"
 )
+
 
 # load data ----
 pfu_annotation_small <- vroom("../../data/pfu_annotation_small.tsv")
@@ -49,12 +50,15 @@ ms_cols_column <- function(maxWidth = 60, ...) {
 
 
 make_color_pal <- function(colors, bias = 1) {
-  get_color <- colorRamp(colors, bias = bias)
+  get_color <- colorRamp(colors)
   function(x) rgb(get_color(x), maxColorValue = 255)
 }
 
-rna_cols_color <- make_color_pal(c("#7fb7d7", "#ffffbf", "#fc8d59"), bias = 1.3)
-ms_cols_color <- make_color_pal(c("#7fb7d7", "#ffffbf", "#fc8d59"), bias = 1.3)
+
+
+
+rna_cols_color <- make_color_pal(brewer.pal(11, "BrBG"))
+ms_cols_color <- make_color_pal(brewer.pal(11, "BrBG"))
 
 with_tooltip <- function(value, tooltip) {
   tags$abbr(style = "text-decoration: none; text-decoration-style: none; cursor: help",
