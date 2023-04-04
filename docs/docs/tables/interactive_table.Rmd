@@ -1,0 +1,126 @@
+---
+title: ""
+format: 
+  html:
+    css: tables_style.css
+    page-layout: full
+---
+
+
+```{r, message = F, warnings = F, comments = F, eval = T, echo = F}
+# libraries ----
+library(here)
+library(tidyverse)
+library(htmltools)
+library(DT)
+library(formattable)
+library(readxl)
+library(colorspace)
+library(scales)
+library(RColorBrewer)
+library(reactable)
+
+# load data ----
+fc_data <- read_xlsx(here("data/Rdata/HSCS_export_new.xlsx"))
+
+# create heatmap ----
+make_color_pal <- function(colors, bias = 1) {
+  get_color <- colorRamp(colors)
+  function(x) rgb(get_color(x), maxColorValue = 255)
+}
+
+color_scale <- make_color_pal(brewer.pal(11, "BrBG"))
+brks <- seq(min(fc_data[,3:16], na.rm = T),max(fc_data[,3:16], na.rm = T),length.out = 100)
+clrs <- sequential_hcl(length(brks) + 1, palette = "YlGnBu")
+clrs <- color_scale(c(rescale(brks),1))
+
+brks2 <- c(-10,-4,0,4,10)
+clrs2 <- c("white","white", "black","black", "white","white")
+
+
+
+# format column names
+col_names <- gsub("_","\n", names(fc_data))
+col_names <- toupper(col_names)
+
+
+render1 <- JS(
+  "function(data, type, row) {",
+  "  if(type === 'sort' && data === null) {",
+  "    return 0;",
+  "  }",
+  "  return data;",
+  "}"
+)
+
+render3 <- JS(
+  "function(data, type, row) {",
+  "  if(type === 'sort' && data === null) {",
+  "    return 2;",
+  "  }",
+  "  return data;",
+  "}"
+)
+
+render4 <- JS(
+  "function(data, type, row) {",
+  "  if(type === 'sort' && data === null) {",
+  "    return 0.6;",
+  "  }",
+  "  return data;",
+  "}"
+)
+
+render2 <- JS("function(data, type, row, meta) { return type === 'display' && meta.col == 3 ? data + '<div class=\"vertical-line\"></div>' : data; }")
+
+fc_sel <- fc_data %>%
+  dplyr::mutate(pfu_tag = paste0("<a  target=_blank href=", "https://papers.genomics.lbl.gov/cgi-bin/litSearch.cgi?query=+", pfu_tag,">", pfu_tag, "</a>"))
+
+
+columnDefs <- list(list(className = "dt-center", 
+                        targets = 2:15,
+                        render = render1),
+                   list(className = "dt-center", 
+                        targets = 16:17,
+                        render = render3),
+                   list(className = "dt-center", 
+                        targets = 18,
+                        render = render4),
+                   list(render = render2,
+                        targets = 2))
+
+
+tbl <- datatable(formattable::formattable(fc_sel),
+                 filter = "top",
+                 escape = F,
+           options = list(pageLength = 15,
+                          scrollY = "700",
+                          scrollX = TRUE,
+                          fixedHeader = TRUE,
+                          width = "100%",
+                          ordering = TRUE, 
+                          dom = 'Bfrtip',
+                          buttons = c('copy', 'csv', 'excel', 'pdf'),
+                          keys = TRUE, 
+                          columnDefs = columnDefs),
+          colnames = col_names,
+          extensions = c("Buttons"),
+          rownames = FALSE,
+          style = "default") %>%
+  formatStyle(columns = 3:16,
+              backgroundColor = styleInterval(brks, clrs),
+              color = styleInterval(brks2, clrs2),
+              textAlign = "center") 
+
+div(class = "standings",
+    div(class = "title",
+        h4("Cold and Heat shock in ", em("Pyrococcus furiosus")),
+        "Integrative RNA-seq and proteomics analysis"
+    ),
+    br(),
+    br(),
+    tbl
+)
+```
+
+

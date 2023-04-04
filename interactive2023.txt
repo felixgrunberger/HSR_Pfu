@@ -1,0 +1,362 @@
+---
+title: ""
+format: 
+  html:
+    css: tables_style.css
+    page-layout: full
+---
+
+
+```{r, message = F, warnings = F, comments = F, eval = T, echo = F}
+# libraries ----
+library(here)
+library(vroom)
+library(tidyverse)
+library(readxl)
+library(reactable)
+library(htmltools)
+library(RColorBrewer)
+
+# functions ----
+
+
+# example -----
+htmltools::tags$link(
+  href = "https://fonts.googleapis.com/css?family=Karla:400,700|Fira+Mono&display=fallback",
+  rel = "stylesheet"
+)
+
+
+# load data ----
+pfu_annotation_small <- vroom("../../data/pfu_annotation_small.tsv")
+fc_data <- read_xlsx("../../data/all_table_Pfu.xlsx") %>%
+  dplyr::rename(locus_tag = gene) %>%
+  left_join(pfu_annotation_small, by = "locus_tag")
+
+fc_data$spacer1 <- ""
+fc_data$spacer2 <- ""
+rna_cols     <- colnames(fc_data)[2:8]
+ms_cols     <- colnames(fc_data)[16:22]
+
+fc_data <- fc_data[, c("locus_tag","old_locus_tag", "pf_name", "description",
+                   rna_cols,"spacer1","spacer2", ms_cols)]
+
+rna_cols_column <- function(maxWidth = 60, ...) {
+  colDef(maxWidth = maxWidth, align = "center", class = "cell number",  sortNALast = T, ...)
+}
+ms_cols_column <- function(maxWidth = 60, ...) {
+  colDef(maxWidth = maxWidth, align = "center", class = "cell number",  sortNALast = T, ...)
+}
+
+
+make_color_pal <- function(colors, bias = 1) {
+  get_color <- colorRamp(colors)
+  function(x) rgb(get_color(x), maxColorValue = 255)
+}
+
+
+
+
+rna_cols_color <- make_color_pal(brewer.pal(11, "BrBG"))
+ms_cols_color <- make_color_pal(brewer.pal(11, "BrBG"))
+
+with_tooltip <- function(value, tooltip) {
+  tags$abbr(style = "text-decoration: none; text-decoration-style: none; cursor: help",
+            title = tooltip, value)
+}
+
+
+
+# reactable ----
+tbl <- reactable(
+  fc_data,
+  searchable = TRUE,
+  filterable = TRUE,
+  highlight = TRUE,
+  pagination = FALSE,
+  defaultSorted = "locus_tag",
+  defaultSortOrder = "desc",
+  defaultColGroup = colGroup(headerVAlign = "bottom"),
+  columnGroups = list(
+    colGroup(name = "RNA fold changes", columns = rna_cols),
+    colGroup(name = "MS fold changes", columns = ms_cols)
+  ),
+  defaultColDef = colDef(
+    vAlign = "center",
+    headerVAlign = "bottom",
+    class = "cell",
+    headerClass = "header"
+  ),
+  columns = list(
+    locus_tag = colDef(
+      name = "Locus tag",
+      defaultSortOrder = "asc",
+      minWidth = 200,
+      headerStyle = list(fontWeight = 200)
+    ),
+    old_locus_tag = colDef(
+      header = with_tooltip("Old locus tag", "Links to Uniprot DB"),
+      name = "Old locus tag",
+      html = TRUE,
+      defaultSortOrder = "asc",
+      minWidth = 180,
+      headerStyle = list(fontWeight = 200),
+      cell = JS("function(cell) {
+              return '<a href=\"https://www.uniprot.org/uniprot/?query=pyrococcus+furiosus+' + cell.value + '\">' + cell.value + '</a>'
+              }")
+    ),
+    pf_name = colDef(
+      header = with_tooltip("Old Pfu Identifier", "Links to Paperblast"),
+      html = T,
+      name = "Pfu name",
+      defaultSortOrder = "asc",
+      minWidth = 100,
+      headerStyle = list(fontWeight = 700),
+      cell = JS("function(cell) {
+              return '<a href=\"https://papers.genomics.lbl.gov/cgi-bin/litSearch.cgi?query=+' + cell.value + '\">' + 
+cell.value + '</a>'
+              }")
+    ),
+    description = colDef(
+      name = "Annotation",
+      defaultSortOrder = "asc",
+      minWidth = 300,
+      headerStyle = list(fontWeight = 200),
+      class = "border-right"
+    ),
+    RNA_log2FC_CS1 = rna_cols_column(
+  name = "CS1",
+  cell = function(value) {
+    if(is.na(value)){
+      color <- "white"
+        value <- "NA"
+    } else{
+      scaled <- (value - min(fc_data[,rna_cols], na.rm = T)) / (max(fc_data[,rna_cols], na.rm = T) - min(fc_data[,rna_cols], na.rm = T))
+      color <- rna_cols_color(scaled)
+      value <- format(round(value, 1), nsmall = 1)
+    }
+    div(class = "spi-rating", style = list(background = color), value)
+  }
+),
+RNA_log2FC_CS2 = rna_cols_column(
+  name = "CS2",
+  cell = function(value) {
+    if(is.na(value)){
+      color <- "white"
+        value <- "NA"
+    } else{
+      scaled <- (value - min(fc_data[,rna_cols], na.rm = T)) / (max(fc_data[,rna_cols], na.rm = T) - min(fc_data[,rna_cols], na.rm = T))
+      color <- rna_cols_color(scaled)
+      value <- format(round(value, 1), nsmall = 1)
+    }
+    div(class = "spi-rating", style = list(background = color), value)
+  }
+),
+RNA_log2FC_CS3 = rna_cols_column(
+  name = "CS3",
+  cell = function(value) {
+    if(is.na(value)){
+      color <- "white"
+        value <- "NA"
+    } else{
+      scaled <- (value - min(fc_data[,rna_cols], na.rm = T)) / (max(fc_data[,rna_cols], na.rm = T) - min(fc_data[,rna_cols], na.rm = T))
+      color <- rna_cols_color(scaled)
+      value <- format(round(value, 1), nsmall = 1)
+    }
+    div(class = "spi-rating", style = list(background = color), value)
+  }
+),
+RNA_log2FC_CS4_rec = rna_cols_column(
+  name = "CS4",
+  cell = function(value) {
+    if(is.na(value)){
+      color <- "white"
+        value <- "NA"
+    } else{
+      scaled <- (value - min(fc_data[,rna_cols], na.rm = T)) / (max(fc_data[,rna_cols], na.rm = T) - min(fc_data[,rna_cols], na.rm = T))
+      color <- rna_cols_color(scaled)
+      value <- format(round(value, 1), nsmall = 1)
+    }
+    div(class = "spi-rating", style = list(background = color), value)
+  }
+),
+RNA_log2FC_HS1 = rna_cols_column(
+  name = "HS1",
+  cell = function(value) {
+    if(is.na(value)){
+      color <- "white"
+        value <- "NA"
+    } else{
+      scaled <- (value - min(fc_data[,rna_cols], na.rm = T)) / (max(fc_data[,rna_cols], na.rm = T) - min(fc_data[,rna_cols], na.rm = T))
+      color <- rna_cols_color(scaled)
+      value <- format(round(value, 1), nsmall = 1)
+    }
+    div(class = "spi-rating", style = list(background = color), value)
+  }
+),
+RNA_log2FC_HS2 = rna_cols_column(
+  name = "HS2",
+  cell = function(value) {
+    if(is.na(value)){
+      color <- "white"
+        value <- "NA"
+    } else{
+      scaled <- (value - min(fc_data[,rna_cols], na.rm = T)) / (max(fc_data[,rna_cols], na.rm = T) - min(fc_data[,rna_cols], na.rm = T))
+      color <- rna_cols_color(scaled)
+      value <- format(round(value, 1), nsmall = 1)
+    }
+    div(class = "spi-rating", style = list(background = color), value)
+  }
+),
+RNA_log2FC_HS3_rec = rna_cols_column(
+  name = "HS3",
+  cell = function(value) {
+    if(is.na(value)){
+      color <- "white"
+        value <- "NA"
+    } else{
+      scaled <- (value - min(fc_data[,rna_cols], na.rm = T)) / (max(fc_data[,rna_cols], na.rm = T) - min(fc_data[,rna_cols], na.rm = T))
+      color <- rna_cols_color(scaled)
+      value <- format(round(value, 1), nsmall = 1)
+    }
+    div(class = "spi-rating", style = list(background = color), value)
+  }
+),
+spacer1 = colDef(
+      name = "",
+      defaultSortOrder = "asc",
+      minWidth = 10,
+      headerStyle = list(fontWeight = 200),
+      class = "border-right"
+    ),
+spacer2 = colDef(
+      name = "",
+      defaultSortOrder = "asc",
+      minWidth = 10,
+      headerStyle = list(fontWeight = 200)
+    ),
+    MS_log2FC_CS1 = ms_cols_column(
+  name = "CS1",
+  cell = function(value) {
+    if(is.na(value)){
+      color <- "white"
+        value <- "NA"
+    } else{
+      scaled <- (value - min(fc_data[,ms_cols], na.rm = T)) / (max(fc_data[,ms_cols], na.rm = T) - min(fc_data[,ms_cols], na.rm = T))
+      color <- ms_cols_color(scaled)
+      value <- format(round(value, 1), nsmall = 1)
+    }
+    div(class = "spi-rating", style = list(background = color), value)
+  }
+),
+MS_log2FC_CS2 = ms_cols_column(
+  name = "CS2",
+  cell = function(value) {
+    if(is.na(value)){
+      color <- "white"
+        value <- "NA"
+    } else{
+      scaled <- (value - min(fc_data[,ms_cols], na.rm = T)) / (max(fc_data[,ms_cols], na.rm = T) - min(fc_data[,ms_cols], na.rm = T))
+      color <- ms_cols_color(scaled)
+      value <- format(round(value, 1), nsmall = 1)
+    }
+    div(class = "spi-rating", style = list(background = color), value)
+  }
+),
+MS_log2FC_CS3 = ms_cols_column(
+  name = "CS3",
+  cell = function(value) {
+    if(is.na(value)){
+      color <- "white"
+        value <- "NA"
+    } else{
+      scaled <- (value - min(fc_data[,ms_cols], na.rm = T)) / (max(fc_data[,ms_cols], na.rm = T) - min(fc_data[,ms_cols], na.rm = T))
+      color <- ms_cols_color(scaled)
+      value <- format(round(value, 1), nsmall = 1)
+    }
+    div(class = "spi-rating", style = list(background = color), value)
+  }
+),
+MS_log2FC_CS4_rec = ms_cols_column(
+  name = "CS4",
+  cell = function(value) {
+    if(is.na(value)){
+      color <- "white"
+        value <- "NA"
+    } else{
+      scaled <- (value - min(fc_data[,ms_cols], na.rm = T)) / (max(fc_data[,ms_cols], na.rm = T) - min(fc_data[,ms_cols], na.rm = T))
+      color <- ms_cols_color(scaled)
+      value <- format(round(value, 1), nsmall = 1)
+    }
+    div(class = "spi-rating", style = list(background = color), value)
+  }
+),
+MS_log2FC_HS1 = ms_cols_column(
+  name = "HS1",
+  cell = function(value) {
+    if(is.na(value)){
+      color <- "white"
+        value <- "NA"
+    } else{
+      scaled <- (value - min(fc_data[,ms_cols], na.rm = T)) / (max(fc_data[,ms_cols], na.rm = T) - min(fc_data[,ms_cols], na.rm = T))
+      color <- ms_cols_color(scaled)
+      value <- format(round(value, 1), nsmall = 1)
+    }
+    div(class = "spi-rating", style = list(background = color), value)
+  }
+),
+MS_log2FC_HS2 = ms_cols_column(
+  name = "HS2",
+  cell = function(value) {
+    if(is.na(value)){
+      color <- "white"
+        value <- "NA"
+    } else{
+      scaled <- (value - min(fc_data[,ms_cols], na.rm = T)) / (max(fc_data[,ms_cols], na.rm = T) - min(fc_data[,ms_cols], na.rm = T))
+      color <- ms_cols_color(scaled)
+      value <- format(round(value, 1), nsmall = 1)
+    }
+    div(class = "spi-rating", style = list(background = color), value)
+  }
+),
+MS_log2FC_HS3_rec = ms_cols_column(
+  name = "HS3",
+  cell = function(value) {
+    if(is.na(value)){
+      color <- "white"
+        value <- "NA"
+    } else{
+      scaled <- (value - min(fc_data[,ms_cols], na.rm = T)) / (max(fc_data[,ms_cols], na.rm = T) - min(fc_data[,ms_cols], na.rm = T))
+      color <- ms_cols_color(scaled)
+      value <- format(round(value, 1), nsmall = 1)
+    }
+    div(class = "spi-rating", style = list(background = color), value)
+  }
+)
+    ),
+  # Emphasize borders between groups when sorting by group
+  rowClass = JS("
+    function(rowInfo, state) {
+      const firstSorted = state.sorted[0]
+      if (firstSorted && firstSorted.id === 'group') {
+        const nextRow = state.pageRows[rowInfo.viewIndex + 1]
+        if (nextRow && rowInfo.values['group'] !== nextRow.group) {
+          return 'group-last'
+        }
+      }
+    }"
+  ),
+  showSortIcon = TRUE,
+  borderless = TRUE,
+  class = "standings-table"
+)
+
+
+div(class = "standings",
+    div(class = "title",
+        h2("Cold and Heat shock in Pyrococcus furiosus"),
+        "Integrative RNA-seq and proteomics analysis"
+    ),
+    tbl
+)
+```
